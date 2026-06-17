@@ -1,0 +1,21 @@
+{
+  "_comment": "Verify hook syntax against current Claude Code docs before relying on it; the event catalog evolves. PreToolUse exit code 2 = block; exit 0 = allow.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash scripts/check-approval.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash scripts/check-topology.sh" }
+        ]
+      }
+    ]
+  }
+}
