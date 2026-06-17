@@ -15,9 +15,11 @@ cd sdd-kstream
 chmod +x setup.sh                                     # exec bit isn't preserved through a zip
 ./setup.sh <path-to-your-project>
 ```
-It copies `claude/.` → `<project>/.claude/`, the three root docs (`AGENTS.md`, `CLAUDE.md`,
-`process-constitution.md`), and `templates/`, `scripts/`, `knowledge/`, then sets the exec bit on the
-scripts. (It does **not** copy `guides/` — those are framework help docs, not part of your service.)
+It copies `claude/.` → `<project>/.claude/`, `CLAUDE.md` and `process-constitution.md` to the project
+root, `knowledge/AGENTS.md` → project root `AGENTS.md` (where Claude auto-loads it), the two reference
+docs (`design-standard.md`, `kafka-topology-rules.md`) → `<project>/knowledge/`, and `templates/`,
+`scripts/`, then sets the exec bit on the scripts. (It does **not** copy `guides/` — those are framework
+help docs, not part of your service.)
 
 ## Manual install (alternative)
 Equivalent to `setup.sh`, if you'd rather copy by hand:
@@ -25,8 +27,12 @@ Equivalent to `setup.sh`, if you'd rather copy by hand:
 git clone <this-repo> sdd-kstream
 cd <your-project>
 cp -r ../sdd-kstream/claude/.      .claude/          # skills, agents prompts, commands, settings.json
-cp ../sdd-kstream/AGENTS.md ../sdd-kstream/CLAUDE.md ../sdd-kstream/process-constitution.md  .
-cp -r ../sdd-kstream/templates ../sdd-kstream/scripts ../sdd-kstream/knowledge  .
+cp ../sdd-kstream/knowledge/AGENTS.md .
+cp ../sdd-kstream/install/CLAUDE.md CLAUDE.md
+cp ../sdd-kstream/process-constitution.md .
+cp -r ../sdd-kstream/templates ../sdd-kstream/scripts  .
+mkdir -p knowledge
+cp ../sdd-kstream/knowledge/design-standard.md ../sdd-kstream/knowledge/kafka-topology-rules.md knowledge/
 chmod +x scripts/*.sh                                 # exec bit isn't preserved through a zip
 ```
 Either way: start Claude Code in the project and run `/sdd`.
