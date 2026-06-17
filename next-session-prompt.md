@@ -1,3 +1,93 @@
+# Independent Framework Review — 2026-06-18
+
+> Brutally-honest, file-verified review of the `sdd-kstream` framework. Every claim below was checked
+> against the actual files (paths cited). Nothing was fixed — this is assessment only.
+
+## Verdict
+The *design thinking* is genuinely strong — better than almost any AI-coding scaffold. But the framework
+has **never been run**, several "non-negotiable" gates **don't actually hold**, and a large fraction of
+its claimed rigor is **prose instruction with no mechanism behind it**. It's an excellent specification
+of a system, presented as a working one.
+
+## What's genuinely strong
+- **Mechanism-per-responsibility is the right spine** (`guides/WORKFLOW-AND-ARTIFACTS.md:53-63`): skills
+  for judgment, subagents for isolation, hooks for determinism, rules for policy.
+- **Review isolation is sound** — reviewer runs as a separate-context, read-only subagent
+  (`claude/skills/sdd-code-review/code-reviewer-prompt.md`), so it can't inherit the implementer's reasoning.
+- **Domain specificity is real** — §7 topology safety, blue-green evolution as a whole-topology property,
+  `TopologyTestDriver` before Spring tests, one canonical `docs/design.md` because the topology is a single graph.
+- **Version-stamped standards** into review artifacts + gate ledger is a real audit property most frameworks lack.
+
+## Central finding: it has never been executed end-to-end
+The "worked example" (`specs/001-example-feature/`) is hand-authored fiction:
+- **No build exists** — no `build.gradle`/`gradlew`/`pom.xml` anywhere, yet `STATE.md:26` asserts
+  `tests passing — ./gradlew build green`.
+- **No code exists** — the only `.java` file in the repo is `evals/planted-violation/BadProcessor.java`.
+  `tasks.md` claims `domain/Payment.java`, `topology/TotalsTopology.java`, `config/StreamsConfig.java` are
+  "done"; none exist.
+- **Artifacts disagree** — `tasks.md` frontmatter `status: accepted` vs `STATE.md` `tasks.md | done`;
+  review-round numbering uses two unreconciled schemes (`audit-log.md` rounds 1-4 global, `code-review.md`
+  `round: 2`, `STATE.md` "code review round 4").
+
+## The gates don't actually hold
+First principle is "gates are non-negotiable" (`process-constitution.md:8`). Enforcement doesn't deliver:
+1. **Approval is repo-wide, not per-feature** — `scripts/check-approval.sh:8` gates on `ls specs/*/.approved`;
+   approving any feature unlocks `src/` for every feature.
+2. **The §7 safety check only warns** — `scripts/check-topology.sh:10` exits `1` (non-blocking) on the most
+   safety-critical automated check. Doc even says "Change to exit 2 to hard-block."
+3. **The §7 pattern list is trivially incomplete** — `check-topology.sh:8` matches only a handful of class
+   names; misses `Thread.sleep`, `CompletableFuture.get`, `HttpURLConnection`, `OkHttp`, `Future.get`,
+   `CountDownLatch.await`, etc.
+4. **Approval gate is bypassable by the agent** — `sdd-approve.md` correctly sets `disable-model-invocation:
+   true`, but `scripts/approve.sh` is just `touch .approved`; the agent can run it (or `touch`) via Bash, and
+   `check-approval.sh` only tests file existence.
+
+Pattern: the deterministic layer that's supposed to be trustworthy is the weakest part.
+
+## Governance is convention, not control
+- **Org/project boundary unenforced** — `/sdd-standards-update` is "maintainer-only by convention"
+  (prose only; no `disable-model-invocation`); can rewrite `[ORG]` on a team checkout.
+- **No upgrade mechanism** — `upgrade.sh` deferred (`WORKFLOW-AND-ARTIFACTS.md:273-275`); "replaced on
+  upgrade" is aspirational.
+- **Known-broken brownfield skill ships anyway** — guide admits `sdd-codebase-to-coding-standard` still
+  overwrites the `[ORG]` core (`WORKFLOW-AND-ARTIFACTS.md:278-280`).
+
+## Other substantive issues
+- **Load-bearing eval isn't automated** — the planted-violation reviewer test needs `claude -p` and isn't
+  wired to CI; `run-evals.sh` only does 3 structural checks.
+- **AGENTS.md ships with unfilled placeholders** — `knowledge/AGENTS.md:77-78` still has `Java {{N}}` /
+  `Kafka Streams {{x.y}}`; copied verbatim on install.
+- **Path drift** — canonical repo has `knowledge/AGENTS.md`; `code-reviewer-prompt.md:9` references bare
+  `AGENTS.md` (post-install root) while `bugfix-prompt.md:55` references `knowledge/AGENTS.md`. One is wrong
+  in each layout.
+- **Concurrency unaddressed** — single `docs/design.md` + branch-per-feature ⇒ topology-touching features
+  collide on merge, and the gate validated each *branch diff*, not the *merged* topology (where blue-green
+  safety actually breaks). Biggest conceptual gap; not listed as a limitation.
+- **Orchestrator runs on the weakest model** — `claude/skills/sdd/SKILL.md:7-8` pins `model: haiku, effort:
+  low` on the component whose job is gate-guarding.
+- **Ceremony with no escape hatch** — a 3-task feature still needs 7 gates, two manual review commands
+  re-run per round, ~10 artifacts; no guidance on when the framework is too heavy.
+
+## Meta-risk
+Strip away what's actually mechanized (two shell hooks — one repo-wide, one warn-only, both pattern-limited —
+plus a file-existence marker) and the rigor lives in prose the model is asked to follow ("interrogate before
+designing," "grill don't blindly apply," "additive only," "maintainer-only by convention"). That's the same
+"please remember" the framework warns against. The architecture *names* the right mechanisms; the
+implementation mostly hasn't built them yet.
+
+## Prioritized fixes
+1. **Run the example for real** — minimal Gradle project, actual code, real `./gradlew build`, a genuine
+   review round. The only honest proof it works; will surface integration bugs reading can't.
+2. **Make `check-approval.sh` per-feature**, and **flip `check-topology.sh` to exit 2** with a much larger
+   pattern set.
+3. **Wire the planted-violation eval into CI** (headless `claude -p`) — the only guard on the reviewer.
+4. **Resolve/strip AGENTS.md placeholders on install**; fix the `AGENTS.md` vs `knowledge/AGENTS.md` path drift.
+5. **Decide and document the concurrency story** (even if it's "one feature at a time, for now").
+6. **Enforce `/sdd-standards-update`'s maintainer-only rule** (repo-identity check, not prose) **or build
+   `upgrade.sh`** — the `[ORG]` model isn't real without one of them.
+
+---
+
 # Next Session Prompt — sdd-restapi design
 
 ## What this repo is

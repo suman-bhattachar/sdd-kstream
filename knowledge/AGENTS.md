@@ -1,5 +1,5 @@
 ---
-version: 1.0
+version: 1.1
 ---
 # AGENTS.md — SDD-KStream Coding Standards
 
@@ -47,9 +47,11 @@ because the code violates it — that becomes tech debt.
 - **[REVIEW] MUST** target the declared processing guarantee and write idempotent logic where required.
 - **[REVIEW] MUST** keep topology evolution blue-green safe — zero tolerance for state corruption or
   duplicate processing across releases.
-- **[HOOK][REVIEW] MUST NOT** inside a topology/processor: blocking I/O · direct DB access (JdbcTemplate/MongoTemplate)
-  · synchronous external calls (RestTemplate/WebClient/Feign/`.block()`) · hidden mutable shared state
-  · undocumented repartitions. _These stall the stream thread and risk data loss._
+- **[HOOK][REVIEW] MUST NOT** inside a topology/processor: blocking I/O (Thread.sleep/HttpURLConnection/CountDownLatch/CompletableFuture)
+  · direct DB access (JdbcTemplate/MongoTemplate/DriverManager) · synchronous external calls
+  (RestTemplate/WebClient/Feign/OkHttp/`.block()`) · hidden mutable shared state
+  · undocumented repartitions (examples illustrative, not exhaustive — the rule is the category).
+  _These stall the stream thread and risk data loss._
   (Detail: `knowledge/kafka-topology-rules.md`. `scripts/check-topology.sh` flags these; the reviewer also checks them.)
 
 ### Testing (ordered — enforce in this order)

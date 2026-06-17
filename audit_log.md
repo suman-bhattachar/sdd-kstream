@@ -6,6 +6,45 @@ Newest entries on top.
 
 ---
 
+## 2026-06-18 — §7 topology hook widened + standards v1.1
+
+Hardened the deterministic §7 detection ahead of a brownfield trial install, and folded the matching
+clarification into the [ORG] standards.
+
+### 1. Widened forbidden-construct detection
+- **`scripts/check-topology.sh`:** extended the in-topology forbidden-construct regex beyond the original
+  `JdbcTemplate|MongoTemplate|RestTemplate|WebClient|FeignClient|.block()` to also flag `Thread.sleep`,
+  `HttpURLConnection`, `OkHttp`, `DriverManager`, `CountDownLatch`, and `CompletableFuture`.
+- **Deliberately kept exit 1 (warn-only).** Not escalated to exit 2: a brownfield repo's existing
+  processors will trip these, and a hard block would prevent editing legacy files. Plan: flip to exit 2
+  once a file is known-clean / for all new topology code.
+- **`scripts/extract_evidence.py`:** synced the anti-pattern grep (count + sample + label) to the same
+  widened set, so the brownfield evidence pack's smell counts match what the hook enforces.
+
+### 2. Standards alignment (additive, version bump)
+- **`knowledge/kafka-topology-rules.md` and `knowledge/AGENTS.md`:** expanded the illustrative example
+  lists in the §7 forbidden-construct rule to name the newly-detected constructs, and added an explicit
+  "examples illustrative, not exhaustive — the rule is the category" note. **Both bumped `version:` 1.0 → 1.1.**
+- The rule itself is unchanged — the prose categories ("blocking I/O", "synchronous external calls",
+  "direct DB access") already covered these constructs; only the examples and the hook's coverage changed.
+
+### Justification
+The original list enumerated only ~6 class names while the §7 categories already forbid the added
+constructs — the hook now detects more of what the standard already says. Widening is strictly safer
+regardless of warn-vs-block. The standards edit is additive-only (no rule modified/removed), so it takes a
+**minor** bump per the feedback-loop governance; historical v1.0 review stamps (e.g. the worked example)
+remain truthful — they were reviewed against the narrower v1.0 surface. Found during the independent
+framework review (recorded in `next-session-prompt.md`, 2026-06-18).
+
+### Related / not yet done
+- Optional: add a non-DB fixture (e.g. `Thread.sleep`) to `evals/run-evals.sh` to lock in the widened set
+  (current fixture uses `JdbcTemplate`, which still matches).
+- Pre-existing, unrelated bug noticed: `evals/planted-violation/README.md` points the reviewer at
+  `claude/skills/sdd-dev/code-reviewer-prompt.md`; the prompt actually lives at
+  `claude/skills/sdd-code-review/code-reviewer-prompt.md`.
+
+---
+
 ## 2026-06-18 — Bug workflow + standards feedback loop
 
 Added a defect lifecycle and the loop that turns escaped defects into durable standards changes.

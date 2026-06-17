@@ -1,5 +1,5 @@
 ---
-version: 1.0
+version: 1.1
 ---
 # Kafka Topology Rules (§7 safety — reference)
 
@@ -14,10 +14,12 @@ design-level rules are **[REVIEW]** (architecture review).
 ## [ORG]
 
 ### Forbidden inside a topology / processor — [HOOK][REVIEW]
-Blocking I/O · direct DB access (`JdbcTemplate`, `MongoTemplate`) · synchronous external calls
-(`RestTemplate`, `WebClient`, `FeignClient`, `.block()`) · hidden mutable shared state · undocumented
-repartitions. Reason: these stall the single stream thread and risk data loss / duplicates. Move
-external lookups to a `GlobalKTable`, a co-partitioned join, or an async pattern outside the topology.
+Blocking I/O (`Thread.sleep`, `HttpURLConnection`, `CountDownLatch`, blocking on `CompletableFuture`) ·
+direct DB access (`JdbcTemplate`, `MongoTemplate`, `DriverManager`) · synchronous external calls
+(`RestTemplate`, `WebClient`, `FeignClient`, `OkHttp`, `.block()`) · hidden mutable shared state ·
+undocumented repartitions. The example classes are illustrative, not exhaustive — the rule is the
+*category*, not the list. Reason: these stall the single stream thread and risk data loss / duplicates.
+Move external lookups to a `GlobalKTable`, a co-partitioned join, or an async pattern outside the topology.
 
 ### State stores — [REVIEW]
 Declare and name explicitly; pick the store type deliberately (keyed, windowed, session). Document the
