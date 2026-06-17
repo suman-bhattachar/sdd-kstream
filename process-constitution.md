@@ -57,3 +57,18 @@ requirements → design: /sdd-architect (create) → /sdd-architecture-review �
   `code-review.md`. Not deferrable without that record.
 - **Minor / Nit** — deferrable freely; recorded only in the review artifact, never in `STATE.md`.
 - No framework debt register — "fix later" goes to the team's issue tracker.
+
+## Post-implementation defects & the feedback loop
+A defect found after implementation does **not** re-enter the feature lifecycle — it runs through
+`/sdd-bugfix`, a standalone lifecycle (`bugs/<id>.md`, never reopens a feature's `STATE.md`):
+- **Lighter gate.** No `/sdd-approve`; the human confirming the fix approach in chat is the gate. The fix
+  is made via `/sdd-dev` (fix mode) and independently reviewed inline (no separate artifact).
+- **Conditional doc update.** If the bug exposes a gap, `docs/design.md`/`requirements.md` is updated
+  before the fix; an implementation-only bug touches no doc.
+- **Mandatory post-mortem.** Before close, every bug answers *why it leaked through the gates* and records
+  a finding in `knowledge/feedback-log.md` (recommend-only — it edits no standard).
+
+The loop closes in the **canonical repo only**: a maintainer runs `/sdd-standards-update`, which (under
+human interview) **appends** a new rule to a standard or a check to a reviewer/dev prompt — additive only,
+minor `version:` bump, never modifying or removing an existing rule. `process-gap` findings are
+**recommended only**; a change to this constitution is always a deliberate human edit, never auto-applied.

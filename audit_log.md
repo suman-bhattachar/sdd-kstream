@@ -6,6 +6,50 @@ Newest entries on top.
 
 ---
 
+## 2026-06-18 — Bug workflow + standards feedback loop
+
+Added a defect lifecycle and the loop that turns escaped defects into durable standards changes.
+
+### 1. `/sdd-bugfix` — bug lifecycle skill
+- **New:** `claude/skills/sdd-bugfix/SKILL.md` (trigger + high-level flow) + `bugfix-prompt.md` (detailed
+  playbook); `templates/bug.template.md`; top-level `bugs/` folder.
+- **Behaviour:** skill-first (`/sdd-bugfix "..."` creates the file), `type:`-driven interrogation
+  (unit/functional/nfr), conditional doc-gap update, lighter gate (human confirms fix approach in chat —
+  no `/sdd-approve`), `/sdd-dev` fix mode for the edit, **inline** independent review (reuses
+  `code-reviewer-prompt.md`, writes into the bug file's `## Review` — no separate artifact), human
+  verification, then a **mandatory post-mortem**. Mode is detected from the file's `status:`
+  (open → analysed → fix-proposed → implementing → fixed → verified → post-mortem → closed).
+- **Standalone:** bugs never reopen a feature's `STATE.md`; the `feature:` field preserves traceability.
+
+### 2. Standards feedback loop
+- **New:** `knowledge/feedback-log.md` (frontmatter `open:`/`actioned:` queue + newest-on-top timestamped
+  body) and `claude/skills/sdd-standards-update/SKILL.md` + `standards-update-prompt.md`.
+- **Flow:** `/sdd-bugfix`'s post-mortem appends a finding (recommend-only — touches no standard).
+  `/sdd-standards-update` (a **canonical-repo maintainer tool**) reads open findings, interviews, and
+  **appends** a rule to a standard or a check to a reviewer/dev prompt, then flips the entry to actioned.
+- **Rules:** additive only (never modify/remove an existing rule); each standard append bumps `version:`
+  one **minor** (always backward-compatible, so no major bump); document names never change. Scope is
+  standards + review/dev prompts; `process-gap` findings are recommended only, not auto-applied.
+- **Justification:** closes the loop from "fix the symptom" to "fix the system that let it through." The
+  `[ORG]` boundary is respected — standards evolve in one governed place (the canonical repo), not on
+  consuming checkouts where an upgrade would clobber the edit. Keeping the version-bump-on-append (rather
+  than freezing version) preserves the review version-stamp's meaning from the previous session.
+
+### 3. Install/consistency wiring (same change set)
+- `setup.sh` + `install/INSTALL.md`: seed an empty `knowledge/feedback-log.md` (from new
+  `templates/feedback-log.template.md`) and a `bugs/` folder in the target. `sdd-standards-update` ships
+  to every project (maintainer-only by convention — its in-skill guard is the protection, not exclusion).
+- `README.md`: corrected the stale `AGENTS.md` location (now `knowledge/AGENTS.md`, a miss from the prior
+  AGENTS.md move) and the layout/personas lists; added `/sdd-bugfix` + the feedback loop.
+- `process-constitution.md`: documented the post-implementation defect path and the feedback loop.
+
+### Deferred
+- `[HOOK]`-tagged feedback additions still need the matching detector wired into `scripts/check-topology.sh`
+  (or a new script) by hand — `/sdd-standards-update` flags this as a follow-up but does not auto-edit hooks.
+- Whether `/sdd` should surface open bugs in its routing (currently bugs are invoked directly).
+
+---
+
 ## Baseline — 2026-06-17 (commit `ede45e8`)
 
 State of the framework before this session's changes:
