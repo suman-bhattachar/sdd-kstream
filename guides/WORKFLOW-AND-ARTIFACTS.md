@@ -79,6 +79,9 @@ mechanism whose failure mode isn't present is unnecessary complexity — say so 
   checks). Org-canonical, same `[ORG]`/`[PROJECT]` + `version:` shape (§10).
 - **`knowledge/kafka-topology-rules.md`** — detail behind the Kafka safety MUSTs; **pure core / locked**
   (teams may append stricter rules only), `version:` stamped. Linked, not inlined, so it loads only when needed.
+- **`knowledge/feedback-log.md`** — the standards feedback loop's queue (§11): bug post-mortems append
+  findings; `/sdd-standards-update` actions them. Frontmatter `open:`/`actioned:` is the queue, body is the
+  newest-on-top narrative.
 
 ### 4.2 Personas (`claude/skills/sdd*/SKILL.md`)
 Each has a **trigger-only `description`** (says *when* to use it, never *how* — the "Description Trap":
@@ -94,6 +97,8 @@ the checklist: read input -> do work -> write artifact (`status:`) -> update `ST
 | `sdd-plan` | `docs/design.md` | `plan.md`, `tasks.md`, `traceability.md` | Decomposition needs the full design context |
 | `sdd-dev` | `tasks.md` / `code-review.md` | code, `test-report.md` | Implement or fix; Level-1 self-review built in |
 | `sdd-code-review` | code, `AGENTS.md`, `requirements.md`, `docs/design.md` | `code-review.md` | Separate command; *dispatches* the reviewer subagent (2 passes) |
+| `sdd-bugfix` | bug report, code, `docs/design.md` | `bugs/<id>.md`, `feedback-log.md` | Full bug lifecycle in one skill; mode by `status:`; collaborative, main context (§11) |
+| `sdd-standards-update` | `feedback-log.md`, standards, reviewer prompts | edits to standards / prompts | Maintainer tool; interviews the human, *appends* rules; canonical repo only (§11) |
 
 ### 4.3 Review commands (each dispatches one reviewer subagent)
 Review is **its own command**, not a loop inside the author skill — `/sdd-architecture-review` and
@@ -273,3 +278,69 @@ follows from everyone meeting the same enforceable floor, not from the document 
 - **Brownfield reconciliation** — `sdd-codebase-to-coding-standard` still emits the pre-model `AGENTS.md`
   shape; it should be repurposed to write only the `[PROJECT]` section + a divergence report against the
   `[ORG]` floor, never the core.
+
+---
+
+## 11. The bug workflow and the standards feedback loop
+
+A defect found *after* implementation (a failing unit test, a functional bug, or a non-functional miss)
+doesn't re-enter the full feature lifecycle — it runs through **`/sdd-bugfix`**, and on close it feeds the
+**standards feedback loop** so the same class of defect gets designed out org-wide.
+
+### The bug lifecycle (`/sdd-bugfix`)
+One skill drives the whole lifecycle; it detects the current step from the bug file's `status:` and does
+only that step (same mode-detection pattern as `/sdd-architect` and `/sdd-dev`):
+
+```
+open → analysed → fix-proposed → implementing → fixed → verified → post-mortem → closed
+```
+
+Design choices and their rationale:
+- **Skill-first, standalone file.** `/sdd-bugfix "..."` creates a top-level `bugs/<id>.md` (from
+  `templates/bug.template.md`). Bugs live outside `specs/` because a defect can be cross-cutting and may
+  not belong to one feature; the `feature:` field preserves traceability without reopening a feature's
+  sealed `STATE.md`.
+- **`type:`-driven interrogation** (unit / functional / nfr) — each surfaces different evidence (stack
+  trace vs repro steps vs metric+threshold), so the questions differ.
+- **Lighter gate.** No `/sdd-approve` and no hook change — the design is already approved and the fix is
+  narrow. The human confirming the `## Fix approach` in chat *is* the gate; then `/sdd-dev` (fix mode)
+  does the edit (which already unlocks `src/`).
+- **Conditional doc update.** A doc-gap diagnostic asks whether `docs/design.md`/`requirements.md` already
+  specified the correct behaviour. If yes → implementation bug, no doc change. If no → design gap, update
+  the doc *before* the fix. Trivial fixes stay light; design-gap bugs don't get silently patched in code.
+- **Inline review.** The independent reviewer (reusing `code-reviewer-prompt.md`) runs scoped to the
+  changed files and writes its verdict into the bug file's `## Review` section — no separate artifact for a
+  narrow fix; one file tells the whole story.
+- **Mandatory post-mortem before close.** Every verified bug answers *why did this leak through every
+  gate?* This is the feedback trigger, not optional.
+
+### The feedback loop (`/sdd-bugfix` post-mortem → `/sdd-standards-update`)
+The loop is deliberately **two-stage and human-gated**, to respect the `[ORG]` boundary (§10):
+
+1. **Record (recommend-only).** The post-mortem classifies the systemic root cause — `missing-rule`,
+   `reviewer-blind-spot`, or `process-gap` — and **appends** a timestamped finding to
+   `knowledge/feedback-log.md` (status: open). `/sdd-bugfix` never edits a standard; recording is all it does.
+2. **Action (maintainer, canonical repo only).** `/sdd-standards-update` reads open findings, **interviews
+   the human** to confirm wording/target/tag, then **appends** a rule to a standard or a check to a
+   reviewer/dev prompt, and flips the entry to `actioned`. The skill is installed on every project for
+   convenience but is **maintainer-only by convention** — its in-skill guard warns that running it outside
+   the canonical repo edits `[ORG]` content that the next upgrade overwrites. `setup.sh` seeds an empty
+   local `knowledge/feedback-log.md` from `templates/feedback-log.template.md` so each team has its own queue.
+
+Why this shape:
+- **Two stages, not one.** A bug fix on a team checkout must not silently mutate an `[ORG]` standard — an
+  upgrade would clobber it, and a standards change has org-wide blast radius. So the *consuming* side only
+  records; the *governed* change happens upstream in the canonical repo where `[ORG]` is owned.
+- **Additive only, minor bump.** New rules are appended, never modifying or removing existing ones, so
+  every change is backward-compatible — hence always a **minor** `version:` bump (`1.0 → 1.1`), never major,
+  and the document name never changes. This keeps the §10 version stamp truthful (a frozen version with a
+  silently-growing ruleset would make the review stamp a lie) without the churn of major versioning.
+- **Scope discipline.** The skill edits standards + review/dev prompts (the two highest-frequency leak
+  causes: "no rule existed" and "a rule existed but the reviewer didn't check it"). `process-gap` findings
+  are **recommended only** — process changes are structural and higher-risk, left for a deliberate human edit.
+
+### Deferred
+- A `[HOOK]`-tagged feedback addition still needs its detector wired into `scripts/check-topology.sh` (or a
+  new script) by hand; `/sdd-standards-update` flags this as a follow-up rather than auto-editing hooks.
+- Whether `/sdd` should surface open bugs in routing (today bugs are invoked directly, not via the
+  Orchestrator).

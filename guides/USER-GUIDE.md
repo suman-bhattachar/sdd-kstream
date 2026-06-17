@@ -63,6 +63,8 @@ Windows: run from a **Git Bash** or **WSL** terminal so the scripts and hooks fi
 | `/sdd-code-review` | independent code review | `code-review.md` |
 | `sdd-codebase-to-design` | brownfield baseline | `docs/design.md` |
 | `sdd-codebase-to-coding-standard` | brownfield, **optional** | `AGENTS.md` |
+| `/sdd-bugfix` | a defect found after implementation | `bugs/<id>.md` |
+| `/sdd-standards-update` | **maintainer**, canonical repo only | edits to standards / reviewer prompts |
 
 `/sdd` is the one to remember — it tells you which of the others to run next.
 
@@ -215,3 +217,38 @@ Each standard carries a `version:`. When a review runs, it records which version
 the review artifact (`standards:`) and on the `STATE.md` gate line — so you can always tell which rules
 gated a given design or code change. If you adopt a newer standard from the org repo, re-run the relevant
 review so the gate reflects the new version.
+
+---
+
+## 9. Bugs & the standards feedback loop
+
+A bug found after implementation (failing unit test, functional defect, or a non-functional miss like
+latency) runs through its own lightweight workflow — **`/sdd-bugfix`** — not the full feature lifecycle.
+
+### Fixing a bug
+```
+/sdd-bugfix "duplicate payments double-count the running total"
+```
+The skill interrogates you (the questions depend on the bug `type:` — unit / functional / nfr), writes a
+standalone `bugs/<id>.md`, and finds the root cause. It checks whether `docs/design.md` / `requirements.md`
+already specified the correct behaviour — if not, that's a design gap and it updates the doc before
+fixing. It proposes a **fix approach**; you confirm in chat (there's no `/sdd-approve` gate for a bug).
+Then it hands to `/sdd-dev` (fix mode) to implement, runs an independent review inline (written into the
+bug file, no separate artifact), and asks you to **verify** the fix in your environment.
+
+Bugs are standalone — the originating feature's `STATE.md` is never reopened; the `feature:` field keeps
+the link. `ls bugs/` shows every bug; `grep "feature: 001" bugs/*.md` finds all bugs tied to a feature.
+
+### The feedback loop — why this matters
+Before a bug closes, `/sdd-bugfix` runs a **mandatory post-mortem**: *why did this defect leak through
+every gate?* If a gate should have caught it, the finding is appended to **`knowledge/feedback-log.md`**
+(it does not change any standard — recording only).
+
+Later, in the **canonical framework repo**, a maintainer runs **`/sdd-standards-update`**. It reads the
+open findings, interviews them, and turns each into a durable fix: a new rule appended to a standard
+(bumping its `version:` a minor notch) or a new check added to a reviewer/dev prompt. Changes are
+**additive only** — rules are never modified or removed, so every change is backward-compatible. This is
+how a single escaped defect ratchets the whole org's standards tighter so the same class of bug can't
+recur. (`/sdd-standards-update` is installed everywhere but is a **maintainer tool** — run it only in the
+canonical repo; its `[ORG]` edits belong upstream, and a local run would be lost on the next upgrade.
+Carry findings upstream rather than editing standards on your own checkout.)
