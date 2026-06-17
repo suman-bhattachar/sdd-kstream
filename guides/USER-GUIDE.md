@@ -33,11 +33,11 @@ No installer, no package manager. From your Gradle project root:
 
 ```bash
 git clone <this-repo> sdd-kstream
-cp -r sdd-kstream/claude/.   .claude/                # personas, reviewer prompts, commands, settings.json
-cp sdd-kstream/AGENTS.md sdd-kstream/CLAUDE.md sdd-kstream/process-constitution.md   .
-cp -r sdd-kstream/templates sdd-kstream/scripts sdd-kstream/knowledge   .
-chmod +x scripts/*.sh                                # exec bit isn't preserved through a zip
+cd sdd-kstream && ./setup.sh <your-project-path>
+chmod +x <your-project-path>/scripts/*.sh            # exec bit isn't preserved through a zip
 ```
+Or manually — see `install/INSTALL.md` for the equivalent copy-by-hand steps.
+
 Do **not** copy `guides/` — those are framework help docs, not part of your service. `docs/design.md`
 is created in *your* project at design time (greenfield) or by the baseline skill (brownfield).
 
