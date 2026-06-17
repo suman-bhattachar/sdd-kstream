@@ -7,7 +7,20 @@ No installer, no package manager. Clone and copy.
 - Bash (the scripts). For the brownfield extractor (`scripts/extract_evidence.py`): **Python 3** (standard library
   only — no `pip`). Confirm `python3` (or `py`) is available if you'll use brownfield.
 
-## Steps
+## Quick install (recommended)
+`setup.sh` does every copy below for you — run it from the cloned repo, passing your project as the target:
+```bash
+git clone <this-repo> sdd-kstream
+cd sdd-kstream
+chmod +x setup.sh                                     # exec bit isn't preserved through a zip
+./setup.sh <path-to-your-project>
+```
+It copies `claude/.` → `<project>/.claude/`, the three root docs (`AGENTS.md`, `CLAUDE.md`,
+`process-constitution.md`), and `templates/`, `scripts/`, `knowledge/`, then sets the exec bit on the
+scripts. (It does **not** copy `guides/` — those are framework help docs, not part of your service.)
+
+## Manual install (alternative)
+Equivalent to `setup.sh`, if you'd rather copy by hand:
 ```bash
 git clone <this-repo> sdd-kstream
 cd <your-project>
@@ -16,7 +29,7 @@ cp ../sdd-kstream/AGENTS.md ../sdd-kstream/CLAUDE.md ../sdd-kstream/process-cons
 cp -r ../sdd-kstream/templates ../sdd-kstream/scripts ../sdd-kstream/knowledge  .
 chmod +x scripts/*.sh                                 # exec bit isn't preserved through a zip
 ```
-Start Claude Code in the project and run `/sdd`.
+Either way: start Claude Code in the project and run `/sdd`.
 
 ## Notes
 - Greenfield: `scripts/new-feature.sh "<name>"` then `/sdd-analyst`.

@@ -4,6 +4,8 @@ description: >-
   Use to start a new SDD feature, route to the next step, or resume work in a new session for a
   Kafka Streams / Spring Boot project. Trigger when the user says "what's next", "where are we",
   "resume", "start a feature", or invokes /sdd.
+model: haiku
+effort: low
 ---
 
 # /sdd — Orchestrator

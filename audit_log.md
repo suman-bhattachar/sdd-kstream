@@ -1,0 +1,94 @@
+# Framework Audit Log
+
+Tracks changes to the **SDD-KStream framework itself** (skills, hooks, standards, templates, docs).
+Distinct from the per-feature `specs/<feature>/audit-log.md`, which logs review rounds within a build.
+Newest entries on top.
+
+---
+
+## Baseline — 2026-06-17 (commit `ede45e8`)
+
+State of the framework before this session's changes:
+
+- **Orchestrator (`/sdd`)** ran on the active session model with no per-skill model/effort scoping.
+- **`/sdd-architect` create mode** edited `docs/design.md` directly from requirements; structured
+  interrogation of Kafka failure modes happened only in *fix* mode (after a review found problems).
+- **`install/INSTALL.md`** documented only the manual clone-and-copy steps; `setup.sh` existed but was
+  undocumented.
+- **Standards documents** (`AGENTS.md`, `knowledge/design-standard.md`, `knowledge/kafka-topology-rules.md`)
+  were flat prescriptive files: no version identifier, no org-vs-team ownership boundary, and no per-rule
+  declaration of how each rule is enforced.
+- **Reviews** (`/sdd-code-review`, `/sdd-architecture-review`) did not record which version of a standard
+  a given review was performed against — review artifacts and the `STATE.md` gate ledger carried no
+  standard-version stamp.
+
+---
+
+## 2026-06-17T18:05Z — Efficiency, architect rigor, and the org-standard model
+
+### 1. Orchestrator efficiency
+- **Change:** added `model: haiku` + `effort: low` to `claude/skills/sdd/SKILL.md`.
+- **Justification:** `/sdd` is pure routing (read `STATE.md`, report phase/gate/next) and the
+  highest-frequency skill. Running it on the session's judgment-tier model was the dominant local-usage
+  cost. The override reverts after the turn, so it cannot downgrade the judgment personas.
+- **Open caveat:** confirm the VS Code extension honors per-skill `model`/`effort` (verified valid for the CLI).
+
+### 2. Architect interrogates before designing
+- **Change:** `claude/skills/sdd-architect/SKILL.md` create mode now interrogates the human about the
+  failure modes in `knowledge/kafka-topology-rules.md` (state-store corruption, repartitions, serde drift,
+  guarantee/idempotency, blue-green) *before* writing the design — calibrated, no forced question count.
+- **Justification:** for a zero-data-loss context, catching a topology hazard during requirements
+  interrogation is cheaper and safer than catching it in a later review round. Grounded in the existing
+  rules file (single source of truth); only salvaged idea from an external upgrade proposal.
+
+### 3. Install via `setup.sh`
+- **Change:** `install/INSTALL.md` now leads with `setup.sh` (Quick install) and keeps the manual copy as
+  an alternative.
+- **Justification:** `setup.sh` performs the same copies deterministically. **Known risk recorded:**
+  `setup.sh` uses `cp -rf`, which clobbers team-owned files (`AGENTS.md` `[PROJECT]` section,
+  `settings.json` permissions) on a re-run — an upgrade-safe mode is deferred.
+
+### 4. Org-canonical standards model
+Reshaped the three standards documents (`AGENTS.md`, `knowledge/design-standard.md`,
+`knowledge/kafka-topology-rules.md`) to a shared structure decided via a design interrogation:
+- **`version:` frontmatter** on each — enables reproducibility/audit.
+- **`[ORG]` / `[PROJECT]` boundary** — `[ORG]` is org-canonical (replaced on upgrade); `[PROJECT]` is
+  team-owned and may make a rule *stricter, never looser*. Safety rules are pure-core, append-stricter-only.
+- **Per-rule enforcement tags** — `[HOOK]` / `[REVIEW]` / `[GUIDANCE]`; `[GUIDANCE]` is barred from the
+  binding core.
+- **Justification:** the goal is *enforceable* standards across teams (advisory text alone is not
+  enforcement). A canonical, versioned, enforcement-tagged standard is the prerequisite for consistent
+  AI output org-wide without per-team drift.
+- **Two refinements found while applying the model to real content:**
+  1. Safety rules carry **`[HOOK][REVIEW]`** (both) — the topology hook only *warns*, and the reviewer
+     must still catch §7 breaches (the `planted-violation` eval depends on it).
+  2. **Tag granularity follows where enforcement varies** — per-rule when mixed (`AGENTS.md`), per-section
+     when clustered (`kafka-topology-rules.md`), once-per-doc when uniform (`design-standard.md`).
+
+### 5. Version stamping into review artifacts
+- **Change:** `templates/review-comments.template.md` gained a `standards:` field; both reviewer prompts
+  read the `version:` from the relevant standard doc and write it in; both review skills record it on the
+  `STATE.md` gate-ledger line at tick; `STATE.template.md` shows the format; the worked-example artifacts
+  were updated to demonstrate it.
+- **Justification:** in a regulated context, "which rules was this code/design checked against?" must be
+  answerable months later. Since teams pull standards deliberately, different teams sit on different
+  versions — without a stamp, a gate tick is not reproducible.
+
+### 6. Guides updated
+- **Change:** documented the org-standard model in the guides — new `§10 The org-standard model` in
+  `guides/WORKFLOW-AND-ARTIFACTS.md` (rationale, the three properties, the two calibration refinements,
+  deferred items), updated `§4.1` and the `§6` review flow there, and added `§8 Coding & design standards
+  (what you may edit)` + an install note to `guides/USER-GUIDE.md`.
+- **Justification:** the framework's own invariant — detail/rationale belongs in the guides, not the lean
+  runtime files. A future maintainer now has the narrative behind the `[ORG]`/`[HOOK][REVIEW]` markers.
+
+### Deferred (recorded, not yet done)
+- Upgrade/pull mechanism (manual for now); change governance (CODEOWNERS + classified changelog).
+- `sdd-codebase-to-coding-standard` skill + `coding-constitution.template.md` still emit the pre-restructure
+  AGENTS.md shape — reconcile to write the `[PROJECT]` section in the new shape.
+- Optional: a line in `process-constitution.md` noting version stamping in the review flow.
+- Optional eval: assert each standard doc carries `version:` + `[ORG]`/`[PROJECT]` markers.
+
+### Verification
+- `evals/run-evals.sh` green (skill descriptions trigger-only · approval hook blocks · topology smell fires).
+- Code reviewer prompt confirmed to reference `AGENTS.md` generically — restructure is transparent to it.
