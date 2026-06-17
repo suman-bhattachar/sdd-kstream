@@ -19,10 +19,10 @@ next: "Merge the feature branch (folds the docs/design.md change into main)."
 
 ## Gate ledger
 - [x] requirements approved — human @ 06-15
-- [x] design approved — arch review round 2 @ 06-16
+- [x] design approved — arch review round 2 @ 06-16 · design-standard v1.0, kafka-topology-rules v1.0
 - [x] plan accepted — 06-16
 - [x] IMPLEMENTATION APPROVED — human @ 06-16
-- [x] code review approved — code review round 4 @ 06-16
+- [x] code review approved — code review round 4 @ 06-16 · AGENTS v1.0
 - [x] tests passing — ./gradlew build green @ 06-16
 
 ## Review loops

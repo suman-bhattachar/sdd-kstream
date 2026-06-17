@@ -18,5 +18,8 @@ compatibility), partitioning intent, traceability. Brownfield: the change respec
 
 ## Output
 Write `specs/<feature>/design-review.md` from `templates/review-comments.template.md`
-(`review_type: architecture`, the round number, the verdict). Do not edit `docs/design.md`. Return a
-one-line verdict: `approved` or `changes-requested (N blocker, M major)`.
+(`review_type: architecture`, the round number, the verdict, and `standards:` listing the versions read
+from the frontmatter of `design-standard.md` and `kafka-topology-rules.md`, e.g.
+`design-standard.md v1.0, kafka-topology-rules.md v1.0` — this stamps which standard versions gated the
+review). Do not edit `docs/design.md`. Return a one-line verdict: `approved` or
+`changes-requested (N blocker, M major)`.

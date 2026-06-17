@@ -17,7 +17,9 @@ the findings. Comment-only — it never edits `docs/design.md`; `/sdd-architect`
    paths to: the `docs/design.md` branch diff, `requirements.md`, `knowledge/design-standard.md`, and the
    output path `specs/<feature>/design-review.md`. Prompt: `architecture-reviewer-prompt.md`.
 3. The subagent writes `design-review.md` from `templates/review-comments.template.md` (severity per
-   finding) and returns a one-line verdict. Append the round to `specs/<feature>/audit-log.md`.
+   finding; stamping `standards:` with the `design-standard.md` + `kafka-topology-rules.md` versions from
+   their frontmatter) and returns a one-line verdict. Append the round to `specs/<feature>/audit-log.md`.
+   When the gate ticks, record those versions on the `STATE.md` ledger line.
 4. Report the verdict. If changes-requested, the user runs `/sdd-architect` (fix mode) next. The design
    gate ticks only when: no open Blocker **and** every Major has an accepted-risk ADR (Minor/Nit may be
    deferred). This is manual — re-run this command after a fix when you want another pass.

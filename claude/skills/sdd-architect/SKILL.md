@@ -19,6 +19,12 @@ is the change, the merge is the fold-in. Decisions go in `docs/adr/`. **Review i
    what you're doing and proceed.)
 
 ## Create / update mode
+- **Interrogate before designing.** Before editing `docs/design.md`, walk the failure modes in
+  `knowledge/kafka-topology-rules.md` and ask the human only the ones `requirements.md` doesn't already
+  settle: state-store corruption/retention, re-keying & undocumented repartitions, serde compatibility
+  across releases, processing guarantee + idempotency, and blue-green coexistence with the running
+  topology. Resolve each before writing the design; where the human defers, leave a `⚠️ HUMAN:` stub.
+  Don't pad with questions the spec already answers (no forced count).
 - Confirm `requirements.md` is `approved`. Edit `docs/design.md` to add/modify only the sections this
   change touches: topology, state stores, serdes, repartitions, processing guarantee, and the blue-green
   evolution plan. Obey AGENTS.md §Kafka and `knowledge/kafka-topology-rules.md`. Record significant
