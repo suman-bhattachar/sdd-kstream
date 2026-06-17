@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-The coding standards for this repository are in **knowledge/AGENTS.md** — read it before writing or
-modifying code and follow every MUST rule.
+The coding standards for this repository are in **AGENTS.md** — read it before writing or modifying
+code and follow every MUST rule.
 
 The SDD process (lifecycle, gates, how the personas hand off) is in **process-constitution.md**.
 
