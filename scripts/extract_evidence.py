@@ -225,10 +225,13 @@ kv("Test files", len([p for p in JAVA_FILES if "/src/test/" in norm(p)]))
 
 # ---- Anti-pattern smells (heuristic) ----
 h("Potential anti-patterns (heuristic — verify)")
-kv("Blocking/external clients (JdbcTemplate/MongoTemplate/RestTemplate/WebClient/.block())",
-   count(r"JdbcTemplate|MongoTemplate|RestTemplate|WebClient|\.block\(\)"))
+kv("Blocking/external clients (JdbcTemplate/MongoTemplate/RestTemplate/WebClient/FeignClient/.block()/"
+   "Thread.sleep/HttpURLConnection/OkHttp/DriverManager/CountDownLatch/CompletableFuture)",
+   count(r"JdbcTemplate|MongoTemplate|RestTemplate|WebClient|FeignClient|\.block\(\)|Thread\.sleep|"
+         r"HttpURLConnection|OkHttp|DriverManager|CountDownLatch|CompletableFuture"))
 w("  If any appear INSIDE topology/processor classes, that is a forbidden blocking-I/O-in-stream smell. Locations:")
-block(sample(r"JdbcTemplate|MongoTemplate|RestTemplate|\.block\(\)", 10))
+block(sample(r"JdbcTemplate|MongoTemplate|RestTemplate|WebClient|FeignClient|\.block\(\)|Thread\.sleep|"
+             r"HttpURLConnection|OkHttp|DriverManager|CountDownLatch|CompletableFuture", 10))
 
 w("")
 w("_End of evidence pack._")
