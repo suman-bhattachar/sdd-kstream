@@ -4,6 +4,7 @@ review_type: code         # code | architecture
 status: changes-requested # changes-requested -> approved
 round: 1
 reviewed: {{branch diff / artifact under review}}
+standards: {{standard doc(s) + version checked against — code: "AGENTS.md v1.0"; architecture: "design-standard.md v1.0, kafka-topology-rules.md v1.0"}}
 ---
 # Review — {{reviewed}} (round {{round}})
 

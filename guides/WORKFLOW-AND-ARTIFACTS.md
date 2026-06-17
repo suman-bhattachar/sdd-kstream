@@ -67,14 +67,18 @@ mechanism whose failure mode isn't present is unnecessary complexity — say so 
 ## 4. Component reference
 
 ### 4.1 Governance (repo root)
-- **`AGENTS.md`** — coding standards. §7 MUSTs are non-negotiable; brownfield may add prevalence-based
-  conventions *around* them. Advisory to the model — enforced by hooks + the code reviewer.
+- **`AGENTS.md`** — coding standards, an **org-canonical** document (see §10): an `[ORG]` core (fixed,
+  replaced on upgrade) plus a team-owned `[PROJECT]` section, every rule tagged `[HOOK]`/`[REVIEW]`/
+  `[GUIDANCE]`, with a `version:` in frontmatter. The Kafka safety MUSTs are non-negotiable. Advisory to
+  the model — enforced by hooks + the code reviewer.
 - **`CLAUDE.md`** — thin pointer to `AGENTS.md` and `process-constitution.md`. Loaded every session;
   kept tiny on purpose.
 - **`process-constitution.md`** — process governance (lifecycle, gates, mechanism map, review-loop
   rules). Separate from `AGENTS.md` because it's *workflow law*, not coding directives.
-- **`knowledge/kafka-topology-rules.md`** — detail behind the `AGENTS.md` Kafka MUSTs; linked, not
-  inlined, so it loads only when needed.
+- **`knowledge/design-standard.md`** — the architecture-review rubric (what `/sdd-architecture-review`
+  checks). Org-canonical, same `[ORG]`/`[PROJECT]` + `version:` shape (§10).
+- **`knowledge/kafka-topology-rules.md`** — detail behind the Kafka safety MUSTs; **pure core / locked**
+  (teams may append stricter rules only), `version:` stamped. Linked, not inlined, so it loads only when needed.
 
 ### 4.2 Personas (`claude/skills/sdd*/SKILL.md`)
 Each has a **trigger-only `description`** (says *when* to use it, never *how* — the "Description Trap":
@@ -162,7 +166,9 @@ never raw output. Resume = `/sdd` reconstructs everything from `STATE.md` + file
 1. The author skill self-reviews, then **stops** — review is a separate command.
 2. `/sdd-architecture-review` or `/sdd-code-review` dispatches one reviewer (separate context,
    comment-only) which writes findings to `review-comments.template.md` with a severity each, returns a
-   verdict, appends the round to `audit-log.md`.
+   verdict, appends the round to `audit-log.md`. The reviewer also **stamps `standards:`** with the
+   `version:` of the standard(s) it checked against; that version is recorded on the `STATE.md`
+   gate-ledger line when the gate ticks, so every tick is reproducible against an exact standard (§10).
 3. The author skill's **fix mode** resolves findings **collaboratively with the human** (grilling, not
    blind application).
 4. The user **manually** re-runs the review command for another pass. No auto-loop. **Calibration:** only
@@ -220,3 +226,50 @@ explicit section.
   calibration; self-review before handoff; trigger-only skill descriptions (the Description Trap);
   dispatch a general-purpose Task with a prompt template (single source of truth); automate mechanical
   constraints, reserve skills for judgment; skill self-tests / planted-bug evals; file-size awareness.
+
+---
+
+## 10. The org-standard model (org-canonical standards)
+
+The three standards — `AGENTS.md`, `knowledge/design-standard.md`, `knowledge/kafka-topology-rules.md` —
+are designed to be **org-wide canonical artifacts**: shared across every team adopting the framework so
+AI output stays consistent and bounded, rather than 12 teams drifting into 12 local dialects. They share
+one structure.
+
+### Why this exists
+The goal is **enforceable**, org-consistent standards — *advisory text alone is not enforcement*. A
+standard is only worth centralizing if something can actually check it; "deterministic across teams"
+follows from everyone meeting the same enforceable floor, not from the document merely being shared.
+
+### The three structural properties
+- **`version:` frontmatter.** Each standard is versioned. Reviews stamp the version they checked against
+  into the review artifact (`standards:`) and onto the `STATE.md` gate-ledger line — so every gate tick is
+  reproducible against an exact standard version (an audit/compliance property). Teams pull standards
+  deliberately, so different teams sit on different versions; the stamp makes *"which rules gated this?"*
+  answerable months later.
+- **`[ORG]` / `[PROJECT]` boundary.** `[ORG]` is org-canonical — owned centrally, replaced on upgrade,
+  never edited locally. `[PROJECT]` is team-owned, survives upgrades, and may only **ratchet tighter**
+  (add or strengthen a rule), never relax an `[ORG]` rule. The org sets the floor; teams may raise it.
+  Safety rules (`kafka-topology-rules.md`) are **pure core, append-stricter-only** — a team may add a
+  stricter rule, never an exception.
+- **Per-rule enforcement tags.** Every binding rule declares how it's checked: `[HOOK]` (a script detects
+  it deterministically), `[REVIEW]` (the reviewer verifies it against the diff), or `[HOOK][REVIEW]`
+  (both). Rules that can't be enforced live under **Guidance (non-binding)** and never affect a gate. The
+  tags double as the reviewer's worklist; an unenforceable rule cannot enter the binding core.
+
+### Two calibration rules (learned applying the model to real content)
+1. **Safety rules carry `[HOOK][REVIEW]`, not just `[HOOK]`.** The topology hook only *warns*, and the
+   reviewer must still catch §7 breaches (the planted-violation eval depends on it). A pure `[HOOK]` tag
+   would tell the reviewer to skip the most safety-critical rule.
+2. **Tag granularity follows where enforcement varies** — per-rule when mixed (`AGENTS.md`), per-section
+   when it clusters (`kafka-topology-rules.md`), once-per-doc when uniform (`design-standard.md`, which is
+   entirely a `[REVIEW]` rubric).
+
+### Deferred (not yet built)
+- **Pull/upgrade mechanism** — manual today (re-run install). The intended safe path is an `upgrade.sh`
+  that replaces only `[ORG]` content and never touches a team's `[PROJECT]` sections or runtime artifacts.
+- **Change governance** — a `CODEOWNERS`-gated change on the canonical repo, with a mandatory `version:`
+  bump and a changelog entry classified breaking-vs-additive (safety-rule changes: two approvers).
+- **Brownfield reconciliation** — `sdd-codebase-to-coding-standard` still emits the pre-model `AGENTS.md`
+  shape; it should be repurposed to write only the `[PROJECT]` section + a divergence report against the
+  `[ORG]` floor, never the core.

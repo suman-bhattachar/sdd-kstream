@@ -4,6 +4,7 @@ review_type: code
 status: approved
 round: 2
 reviewed: feature branch diff (T-1..T-3)
+standards: AGENTS.md v1.0
 ---
 # Review — code (round 2)
 

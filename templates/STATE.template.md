@@ -17,6 +17,9 @@ next: "{{the next action}}"
 | tasks.md | — | /sdd-plan | — |
 
 ## Gate ledger
+<!-- When a review gate ticks, record the standard version checked, e.g.
+     "- [x] design approved — arch review round 2 @ 06-16 · design-standard v1.0, kafka-topology-rules v1.0"
+     "- [x] code review approved — code review round 2 @ 06-16 · AGENTS v1.0" -->
 - [ ] requirements approved
 - [ ] design approved        (architecture review of the branch diff)
 - [ ] plan accepted

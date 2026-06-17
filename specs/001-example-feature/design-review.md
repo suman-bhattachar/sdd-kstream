@@ -4,6 +4,7 @@ review_type: architecture
 status: approved
 round: 2
 reviewed: docs/design.md (feature branch diff)
+standards: design-standard.md v1.0, kafka-topology-rules.md v1.0
 ---
 # Review — docs/design.md (round 2)
 

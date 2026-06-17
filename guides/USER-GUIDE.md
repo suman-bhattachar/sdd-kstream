@@ -42,7 +42,8 @@ Do **not** copy `guides/` — those are framework help docs, not part of your se
 is created in *your* project at design time (greenfield) or by the baseline skill (brownfield).
 
 Open Claude Code in the project, run `/sdd`, confirm it responds. Check `/skills`, `/hooks`, `/memory`
-registered. Fill the two placeholders in `AGENTS.md` (Java version, Kafka Streams version).
+registered. Fill the two placeholders (Java version, Kafka Streams version) in the **`[PROJECT]`** section
+of `AGENTS.md` — never edit the `[ORG]` section (see §8).
 
 Windows: run from a **Git Bash** or **WSL** terminal so the scripts and hooks find `bash`.
 
@@ -194,3 +195,23 @@ degrade: the window only ever holds the current step.
   plain requests ("review the design"), not only the slash form.
 - **The design doc is getting big.** Shard `docs/design.md` into `docs/design/` (a Topology Inventory
   index + per-topology files) and edit the relevant shard. On demand, not up front.
+
+---
+
+## 8. Coding & design standards (what you may edit)
+
+Three documents define the rules the AI follows: `AGENTS.md` (coding), `knowledge/design-standard.md`
+(the architecture-review rubric), and `knowledge/kafka-topology-rules.md` (the Kafka safety rules). They
+are **org-canonical** — shared across teams so AI output stays consistent. Each has two parts:
+
+- **`[ORG]`** — owned centrally; **don't edit it.** An upgrade replaces this section wholesale, so local
+  edits would be lost (and would defeat the point of a shared standard).
+- **`[PROJECT]`** — yours, and it survives upgrades. Put your toolchain (the Java / Kafka Streams version
+  placeholders live here) and local conventions here. You may only make a rule **stricter, never looser** —
+  e.g. *"MUST use Avro serdes"* is fine; relaxing a safety MUST is not. Safety rules accept stricter
+  additions only, never exceptions.
+
+Each standard carries a `version:`. When a review runs, it records which version it checked against — in
+the review artifact (`standards:`) and on the `STATE.md` gate line — so you can always tell which rules
+gated a given design or code change. If you adopt a newer standard from the org repo, re-run the relevant
+review so the gate reflects the new version.
