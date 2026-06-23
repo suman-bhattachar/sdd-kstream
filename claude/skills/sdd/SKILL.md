@@ -21,6 +21,9 @@ You route the SDD workflow. You do not produce feature artifacts; you read state
 5. Point to the right skill for `next` (see process-constitution.md lifecycle). The design and code
    phases alternate author <-> review manually: `/sdd-architect` -> `/sdd-architecture-review` ->
    `/sdd-architect` (fix); `/sdd-dev` -> `/sdd-code-review` -> `/sdd-dev` (fix). Follow `next` in STATE.md.
+6. **At a phase/gate boundary, tell the user to `/clear` first, then run the next skill.** Each phase
+   reads its inputs from disk (artifacts are the source of truth), so a fresh window keeps it lean — this
+   is what stops long features and large codebases from degrading. Phrase `next` as: `/clear, then /<skill>`.
 
 ## New feature
 Ask: **greenfield or brownfield?**
@@ -30,4 +33,4 @@ Ask: **greenfield or brownfield?**
   verification); if `AGENTS.md` is missing, route to `sdd-codebase-to-coding-standard`. Then
   `scripts/new-feature.sh` and `/sdd-analyst`.
 
-Keep output short: phase, gate, next.
+Keep output short: phase, gate, and the next action (`/clear`, then the next skill).

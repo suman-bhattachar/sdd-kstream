@@ -16,6 +16,14 @@ does not review independently — it does the developer self-review (Level 1) an
 **Ask the user one thing:** *implement from `tasks.md`, or fix from the review comments in
 `code-review.md`?* (If only one applies, say what you're doing and proceed.)
 
+## Orient first (both modes) — keep the window lean
+Read `docs/design.md` for the affected area (the architecture map) and the `tasks.md` design refs before
+touching code. Before modifying an existing file, read **that file and its test**. When you need code
+context below design granularity (callers, existing serdes/wiring, related infra) — especially on a large
+or brownfield codebase — **dispatch the researcher subagent** (read-only, separate context; prompt:
+`sdd-architect/researcher-prompt.md`) with a focused question and work from its one-page digest. Do **not**
+read large swaths of the codebase into this session; that bloat is what degrades implementation quality.
+
 ## Implement mode (per task)
 1. Write the test first (unit + `TopologyTestDriver` as applicable), then the code per AGENTS.md
    (constructor injection, explicit serdes, no blocking I/O in the topology).

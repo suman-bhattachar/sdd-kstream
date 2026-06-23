@@ -115,11 +115,13 @@ reviewers is deferred. Reviewers never edit the artifact — the author skill's 
   (ticks the gate = merge approval).
 
 ### 4.4 Researcher subagent (read-only investigation)
-`/sdd-architect` dispatches a **researcher subagent** (prompt: `sdd-architect/researcher-prompt.md`)
-when `docs/design.md`'s summary lacks the detail to safely modify an area — mainly on brownfield. Same
-isolation pattern as the reviewers, but for *reading*: it reads the relevant existing classes in its own
-context and returns a one-page digest (topics, keys, serdes, state stores, processor chain, refs),
-keeping the volume out of the architect's window. Read-only; never edits.
+`/sdd-architect` **and `/sdd-dev`** dispatch a **researcher subagent** (prompt:
+`sdd-architect/researcher-prompt.md`) when the design summary (architect) or the code at hand (dev) lacks
+the detail to safely design or modify an area — mainly on brownfield, **and on any large codebase where
+reading the code directly would bloat the caller's window**. Same isolation pattern as the reviewers, but
+for *reading*: it reads the relevant existing classes in its own context and returns a one-page digest
+(topics, keys, serdes, state stores, processor chain, refs), keeping the volume out of the caller's window.
+Read-only; never edits.
 
 ### 4.4 Hooks + scripts
 Hooks are registered in `claude/settings.json` (`hooks` -> event -> matcher -> command). Scripts are
@@ -136,13 +138,22 @@ pure bash (no package manager) except the Python extractor.
 ### 4.5 Templates (`templates/`)
 Blank forms with `status:` frontmatter and short inline guidance. Filled instances live in
 `specs/<feature>/` — except `design.template.md`, which seeds the **canonical** `docs/design.md`.
+`design.template.md` is the **single shared structure for both design skills** — `/sdd-architect`
+(greenfield) and `/sdd-codebase-to-design` (brownfield) emit the same format (there is no separate
+brownfield asset copy). The format is **arc42** with two layers — *orientation* (non-normative) and
+*binding* — where every normative statement carries a marker: `[CONTRACT]` / `[INVARIANT]` / `[ADR]` /
+`[TEST]`. The Topology Inventory and a cross-release/blue-green section are mandatory (the design-standard
+rubric checks both). Tagging invariants with a `[TEST]` oracle is what makes the design plannable and
+reviewable — `/sdd-plan` and the reviewer work from the marked elements.
 
 ### 4.6 Brownfield skills (`claude/skills/sdd-codebase-to-*`)
 Split from one combined skill so they can run on **independent cadence** (the design baseline rarely
 changes; coding standards refresh each sprint). Both call the shared `scripts/extract_evidence.py` and
 reuse `evidence-pack.md` if present (run both back-to-back -> extract once).
 - `sdd-codebase-to-design` -> `docs/design.md` (complete, coverage-gated, human-verified). Needed for
-  brownfield.
+  brownfield. Generates from the shared `templates/design.template.md` in **as-is baseline mode** (ground
+  every claim in the evidence pack; `⚠️ HUMAN:` stubs for un-inferable intent; mark the invariants/contracts
+  the code *already* enforces).
 - `sdd-codebase-to-coding-standard` -> `AGENTS.md` (prevalence-tagged, living refresh, §7 fixed).
   **Optional** — `AGENTS.md` already ships prescriptive.
 
@@ -151,6 +162,11 @@ Framework self-tests so an enhancer can change skills/reviewers without silently
 (Superpowers practice). `run-evals.sh` checks: skill descriptions stay trigger-only; the approval hook
 blocks; the topology smell fires. `planted-violation/` is the load-bearing behavioral test — a known
 §7 breach the code reviewer must flag at Blocker/Major. Run it after any reviewer-prompt change.
+`handoff/` is the **document-only handoff** test: it runs `/sdd-plan` in a fresh headless session
+(`claude -p`) against a frozen "design approved" fixture and asserts a fully-traceable plan is produced
+**from the files alone**, and that `/sdd-plan` **refuses** when the gate is unticked — turning the
+"artifacts are the source of truth" invariant into a pass/fail check. Behavioral (needs `claude -p`); it
+**skips cleanly** when the CLI is absent. Run on a cadence, not every commit.
 
 ---
 
@@ -163,6 +179,12 @@ its output with a `status:`, updates `STATE.md`, and appends to `audit-log.md` o
 next persona needs nothing from the prior conversation. Subagent handoff: the dispatcher passes file
 *paths* (the subagent starts fresh and reads them); the subagent returns a digest written to a file,
 never raw output. Resume = `/sdd` reconstructs everything from `STATE.md` + files.
+
+**`/clear` at each gate.** Because handoff is file-based, the conversation is disposable: `/sdd` phrases
+`next` as `/clear, then /<skill>` at a phase boundary, so each phase starts in a lean window holding only
+its current artifacts. This is what keeps long features and **large codebases** from degrading. The same
+principle pushes bulk reading into disposable subagent contexts — `/sdd-architect` *and* `/sdd-dev`
+dispatch the read-only researcher to digest existing code instead of loading it into the main window (§4.4).
 
 ---
 
