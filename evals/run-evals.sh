@@ -13,4 +13,6 @@ echo "3. topology smell check flags blocking I/O in a processor..."
 tmp=$(mktemp --suffix=.java); printf 'class P implements Processor { JdbcTemplate t; void f(){ t.query(); } }' > "$tmp"
 printf '{"tool_input":{"file_path":"%s"}}' "$tmp" | bash scripts/check-topology.sh 2>/dev/null \
   && { echo "  FAIL: smell not flagged"; fail=1; } || echo "  ok (flagged)"; rm -f "$tmp"
+echo "4. handoff: /sdd-plan builds a traceable plan from artifacts alone (behavioral; needs claude -p)..."
+bash evals/handoff/run-plan-handoff.sh || fail=1
 echo; [ $fail -eq 0 ] && echo "PASS" || echo "FAILURES ABOVE"; exit $fail

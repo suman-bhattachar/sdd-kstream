@@ -34,8 +34,9 @@ requirements → design: /sdd-architect (create) → /sdd-architecture-review �
 ## Mechanism map
 - **Personas** — skills: `/sdd`, `/sdd-analyst`, `/sdd-architect` (create/fix design), `/sdd-plan`, `/sdd-dev` (implement/fix + Level-1 self-review).
 - **Reviews are separate commands** — `/sdd-architecture-review`, `/sdd-code-review` — each dispatches a single reviewer subagent (separate context, comment-only) into its own command. Council deferred.
-- **Researcher subagent** — `/sdd-architect` dispatches a read-only subagent to investigate specific
-  existing code and return a digest (mainly brownfield), keeping volume out of the main context.
+- **Researcher subagent** — `/sdd-architect` **and `/sdd-dev`** dispatch a read-only subagent to investigate
+  specific existing code and return a digest (brownfield or any large codebase), keeping volume out of the
+  main context.
 - **Self-review (Level 1)** is a mechanical checklist inside `/sdd-dev` (AGENTS.md MUSTs + acceptance criteria + green build); no artifact. Independent review (Level 2) writes the artifact; human approval (Level 3) ticks the gate.
 - **Determinism** — `scripts/` + `claude/settings.json` hooks (approval gate, topology smell check).
 - `AGENTS.md` states the rules; hooks + review enforce the critical ones. Advisory text alone is not enforcement.

@@ -100,7 +100,10 @@ Mark it `approved` -> the requirements gate ticks in `STATE.md`.
 ### 4.3 Design — /sdd-architect, then /sdd-architecture-review (manual)
 Run **`/sdd-architect`**; it asks *create from requirements* or *fix from review* — you pick create. It
 edits `docs/design.md` (adds the topology + a data-flow diagram) and records
-`docs/adr/0001-state-store-choice.md`.
+`docs/adr/0001-state-store-choice.md`. `docs/design.md` follows `templates/design.template.md`: **arc42**
+with an *orientation* layer (non-normative) and a *binding* layer where every normative statement carries a
+marker — `[CONTRACT]` / `[INVARIANT]` / `[ADR]` / `[TEST]`. Tagging each invariant with a `[TEST]` oracle is
+what later lets `/sdd-plan` and the reviewer work from the marked elements.
 
 Then run **`/sdd-architecture-review`** — a single reviewer subagent reviews the *branch diff* in a
 separate context against `knowledge/design-standard.md` and writes `design-review.md`. Round 1 flags a
@@ -171,8 +174,10 @@ Everything from §4.3 on is identical to greenfield. Two brownfield specifics: t
 exists (so `/sdd-architect` updates it rather than creating it), and when the baseline summary isn't
 enough to safely modify an area, `/sdd-architect` dispatches a **researcher subagent** — a read-only
 subagent that reads the specific existing classes and returns a one-page digest (serdes, state-store
-config, processor chain), keeping that heavy reading out of the design context. Your change is then
-reviewed against the existing topology, which is what keeps a topology change blue-green safe.
+config, processor chain), keeping that heavy reading out of the design context. **`/sdd-dev` dispatches the
+same researcher** during implementation when it needs code context below design granularity — so on a large
+codebase the digest lands in the main window, not the raw code. Your change is then reviewed against the
+existing topology, which is what keeps a topology change blue-green safe.
 
 ---
 
@@ -184,6 +189,12 @@ reviewed against the existing topology, which is what keeps a topology change bl
 Reads `STATE.md`, reports feature / phase / gate / next, loads only the current artifacts, continues.
 `/clear` mid-feature is safe — the feature folder is the memory. This is why long features don't
 degrade: the window only ever holds the current step.
+
+**`/clear` at each gate, not just on resume.** `/sdd` phrases the next action as `/clear, then /<skill>`
+at every phase boundary, so each phase runs in a fresh, lean window. On a **large codebase** this is the
+difference between a workable session and a context blow-up: don't run the whole feature in one chat — clear
+at the gate and let the next skill reload from disk. (Heavy code reading is offloaded to the researcher
+subagent, §5, so it never accumulates in your window either.)
 
 ---
 
