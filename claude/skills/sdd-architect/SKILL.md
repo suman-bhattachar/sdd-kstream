@@ -12,6 +12,14 @@ The design is canonical: `docs/design.md` (whole-system). You edit it on the fea
 is the change, the merge is the fold-in. Decisions go in `docs/adr/`. **Review is a separate command**
 (`/sdd-architecture-review`); this skill does not review.
 
+## Design document format
+`docs/design.md` follows `templates/design.template.md` (arc42, ASCII-only). It has two layers:
+**orientation** (context/goals — non-normative) and **binding** (the spec). Every normative statement
+**MUST** carry a marker — `[CONTRACT]` (fixed interface/schema — implement exactly), `[INVARIANT]` (a
+property that must always hold), `[ADR]` (a deliberate decision), `[TEST]` (an executable oracle). Unmarked
+prose and pseudocode are illustrative. When creating `docs/design.md` for the first time, seed it from the
+template.
+
 ## Start
 1. Read `docs/design.md` if it exists (background context — always, greenfield or brownfield).
 2. **Ask the user one thing:** *create/update the design from `requirements.md`, or fix it from the
@@ -26,9 +34,13 @@ is the change, the merge is the fold-in. Decisions go in `docs/adr/`. **Review i
   topology. Resolve each before writing the design; where the human defers, leave a `⚠️ HUMAN:` stub.
   Don't pad with questions the spec already answers (no forced count).
 - Confirm `requirements.md` is `approved`. Edit `docs/design.md` to add/modify only the sections this
-  change touches: topology, state stores, serdes, repartitions, processing guarantee, and the blue-green
-  evolution plan. Obey AGENTS.md §Kafka and `knowledge/kafka-topology-rules.md`. Record significant
-  choices as ADRs. Keep the Topology Inventory current.
+  change touches: topology, state stores, serdes, repartitions, processing guarantee, and the cross-release
+  / blue-green plan. Obey AGENTS.md §Kafka and `knowledge/kafka-topology-rules.md`. Keep the **Topology
+  Inventory** current (a row + a data-flow diagram per topology).
+- **Make it binding, not prose.** Tag every normative statement with a marker (above); record significant
+  choices as **[ADR]**s (table row + full record, mirrored to `docs/adr/`); and pin each **[INVARIANT]**/
+  **[CONTRACT]** with a **[TEST]** oracle in §10 (this is what makes the design plannable and reviewable —
+  the reviewer and `/sdd-plan` work from the marked elements). Keep orientation sections non-normative.
 - **Investigate when needed (mainly brownfield).** If `docs/design.md`'s summary lacks the detail to
   safely modify the area this change touches, dispatch a **researcher subagent** (read-only, separate
   context; prompt: `researcher-prompt.md`) with a focused question — it returns a digest of the specific

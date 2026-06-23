@@ -31,12 +31,25 @@ enhancement is designed against. Works on large repos by extracting a compact ev
 2. **Read the architecturally-significant source — all of it** (the pack lists every topology/config/
    integration file). On a large repo, batch by module/topology and delegate each batch to a subagent with
    a clean context that returns only that slice's findings.
-3. **Generate `docs/design.md`** from `assets/design.template.md`, following its `SOURCE` tags. Produce at
-   minimum: Executive Summary, the complete **Topology Inventory** (every topology), C4 (Context/Container/
-   Component) + a data-flow diagram per topology (Mermaid), and the arc42 sections with `⚠️ HUMAN:` stubs
-   intact. Reference the toolchain via a pointer to AGENTS.md — don't restate versions.
+3. **Generate `docs/design.md`** from the shared **`templates/design.template.md`** — the one canonical
+   structure every design skill uses (arc42 + orientation/binding layers + `[CONTRACT]`/`[INVARIANT]`/
+   `[ADR]`/`[TEST]` markers). Apply it in **as-is baseline** mode (you document an existing system, you don't
+   author a new one):
+   - Fill each section from the evidence pack; **ground every claim** (`file:line` / counts). Per principle 3,
+     leave a `> ⚠️ HUMAN:` stub wherever business intent (goals, quality scenarios, constraints) can't be inferred.
+   - Mark the **[INVARIANT]/[CONTRACT]**s the code *already* enforces; point `[TEST]` at the existing test
+     suite; `[ADR]`s capture decisions visible in the code (flag inferred rationale as such).
+   - Produce at minimum: Executive Summary, the complete **Topology Inventory** (every topology) + a data-flow
+     diagram each, and the arc42 sections. C4 Mermaid (`C4Context`/`C4Container`) is fine for §3/§5. Toolchain →
+     a pointer to AGENTS.md; don't restate versions.
 4. **Coverage gate (do not skip).** Cross-check against the evidence pack's complete inventory; the baseline
-   isn't done until coverage is 100%.
+   isn't done until coverage is 100%. Confirm every architecturally-significant element is represented:
+   - [ ] every **module** in the build (Building Block View);
+   - [ ] every **topology / processor** has an inventory row **and** a data-flow diagram;
+   - [ ] every **input/output topic** appears in a topology row; every **state store** is listed with owner + type;
+   - [ ] every **external integration** (DB / REST / other clusters) appears in Context & Scope;
+   - [ ] detected **anti-patterns** are recorded in Risks & Open Items;
+   - [ ] an engineer who knows the system has reviewed and corrected the above.
 5. **Hand off for verification.** State plainly the baseline is a draft until an engineer who knows the
    system reviews it.
 
