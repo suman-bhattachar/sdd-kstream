@@ -4,8 +4,9 @@ No installer, no package manager. Clone and copy.
 
 ## Requirements
 - Claude Code.
-- Bash (the scripts). For the brownfield extractor (`scripts/extract_evidence.py`): **Python 3** (standard library
-  only — no `pip`). Confirm `python3` (or `py`) is available if you'll use brownfield.
+- Bash (the scripts). For the brownfield Python scripts — `scripts/extract_evidence.py` and the knowledge-graph
+  pair `build_knowledge_graph.py` / `validate_knowledge_graph.py`: **Python 3** (standard library only — no
+  `pip`, no Node). Confirm `python3` (or `py`) is available if you'll use brownfield.
 
 ## Quick install (recommended)
 `setup.sh` does every copy below for you — run it from the cloned repo, passing your project as the target:
@@ -41,7 +42,8 @@ Either way: start Claude Code in the project and run `/sdd`.
 
 ## Notes
 - Greenfield: `scripts/new-feature.sh "<name>"` then `/sdd-analyst`.
-- Brownfield: run `sdd-codebase-to-design` once (generates `docs/design.md`) and `sdd-codebase-to-coding-standard`
+- Brownfield: run `sdd-codebase-to-design` once (generates `docs/design.md` plus a validated
+  `.understand-anything/knowledge-graph.json` — both stdlib Python, no plugin) and `sdd-codebase-to-coding-standard`
   (generates `AGENTS.md`); verify the baseline, then proceed per-feature. Both share `scripts/extract_evidence.py`.
 - `settings.json` hooks: verify the hook syntax against current Claude Code docs before relying on it
   (the event catalog evolves). The approval hook is a coarse repo-wide guard — refine to per-feature if needed.

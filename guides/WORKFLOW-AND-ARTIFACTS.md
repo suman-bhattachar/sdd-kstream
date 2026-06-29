@@ -57,6 +57,7 @@ Each failure mode in agentic coding has a mechanism that closes it. Pick by fail
 | Independent review | **subagent** (Task tool) | Runs in a *separate* context, so the reviewer doesn't inherit the implementer's reasoning — it reads only the diff. Read-only tools mean it can't "fix and move on." A skill can't provide either. |
 | Deterministic, must-not-be-skipped check | **hook + script** | Fires automatically at a lifecycle event regardless of model discretion; `PreToolUse` exit code 2 blocks. A skill *decides* whether to run; a hook always runs. |
 | Whole-repo extraction (brownfield) | **script** (`extract_evidence.py`) | Mechanical, cheap, runs outside the model's context so a large repo never floods the window. |
+| Repo structure as a graph (brownfield) | **script + subagent** (`build_knowledge_graph.py` → enrich → `validate_knowledge_graph.py`) | Deterministic skeleton (dependency/layer/flow edges the flat pack can't express) is a cheap script; the semantic layer (summaries, tour) is a general-purpose subagent; a stdlib validator gates correctness. Self-contained — no Understand-Anything plugin. |
 | Deep static/topology checks at release | CI / static-analysis MCP | Belongs in the pipeline, not the local agent loop. |
 
 Rule of thumb (Superpowers): **automate mechanical constraints; reserve skills for judgment.** A
@@ -125,7 +126,8 @@ Read-only; never edits.
 
 ### 4.4 Hooks + scripts
 Hooks are registered in `claude/settings.json` (`hooks` -> event -> matcher -> command). Scripts are
-pure bash (no package manager) except the Python extractor.
+pure bash (no package manager) except the brownfield Python trio (`extract_evidence.py`,
+`build_knowledge_graph.py`, `validate_knowledge_graph.py`) — all stdlib-only, no `pip`, no Node.
 
 | File | Trigger | Does | Rationale / caveat |
 |---|---|---|---|
@@ -134,6 +136,8 @@ pure bash (no package manager) except the Python extractor.
 | `new-feature.sh` | manual | scaffold `specs/<NNN-feature>/` + `STATE.md` | Deterministic numbering. |
 | `approve.sh` | via `/sdd-approve` | write the approval marker | The human-only half of the approval gate. |
 | `extract_evidence.py` | both brownfield skills | walk the repo -> `evidence-pack.md` | Pure Python stdlib; cross-platform; shared single source. |
+| `build_knowledge_graph.py` | `sdd-codebase-to-design` | walk the repo -> `.understand-anything/knowledge-graph.json` skeleton (nodes, dependency/layer/Kafka-flow edges) | Pure Python stdlib. The deterministic half of the graph; enriched by a subagent, gated by the validator. No plugin. |
+| `validate_knowledge_graph.py` | `sdd-codebase-to-design` (after build + after enrich) | exit non-zero unless the graph is structurally complete (`--stage skeleton`/`enriched`) | Pure Python stdlib. The correctness gate that makes the enriched graph right on the first pass. |
 
 ### 4.5 Templates (`templates/`)
 Blank forms with `status:` frontmatter and short inline guidance. Filled instances live in
@@ -153,7 +157,12 @@ reuse `evidence-pack.md` if present (run both back-to-back -> extract once).
 - `sdd-codebase-to-design` -> `docs/design.md` (complete, coverage-gated, human-verified). Needed for
   brownfield. Generates from the shared `templates/design.template.md` in **as-is baseline mode** (ground
   every claim in the evidence pack; `⚠️ HUMAN:` stubs for un-inferable intent; mark the invariants/contracts
-  the code *already* enforces).
+  the code *already* enforces). Also builds a **self-contained knowledge graph** (`build_knowledge_graph.py`
+  -> enrich via the general-purpose `graph-enricher-prompt.md` subagent -> `validate_knowledge_graph.py`,
+  gated to `VALID`) that corroborates the building-block/runtime/context sections via dependency edges,
+  layers, and topic→topology flow. Stdlib Python + a built-in subagent — **no Understand-Anything plugin**;
+  the output JSON is merely schema-compatible with that plugin's dashboard. The Topology Inventory stays
+  source-derived (the graph is not topology-aware). See the skill's *Graph → design section mapping*.
 - `sdd-codebase-to-coding-standard` -> `AGENTS.md` (prevalence-tagged, living refresh, §7 fixed).
   **Optional** — `AGENTS.md` already ships prescriptive.
 

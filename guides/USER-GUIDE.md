@@ -155,6 +155,14 @@ Runs `python scripts/extract_evidence.py` (Python 3, no pip) to build `evidence-
 architecturally-significant files, and writes `docs/design.md` — the complete as-is: Topology
 Inventory, C4 diagrams, arc42 sections, with `HUMAN` stubs where business intent can't be inferred.
 
+It also builds a **knowledge graph** of the repo: `python scripts/build_knowledge_graph.py` writes
+`.understand-anything/knowledge-graph.json` (dependency edges, architectural layers, and every
+topic→topology flow), a general-purpose subagent enriches it (summaries, layers, a guided tour) while
+reconciling topics/stores against the evidence pack, and `scripts/validate_knowledge_graph.py` gates it
+to `VALID` before use. The graph corroborates the building-block/runtime/context sections — but the
+Topology Inventory stays source-derived. All stdlib Python + a built-in subagent: **no Node, no plugin.**
+(The JSON is also Understand-Anything-dashboard-compatible if you ever install that plugin — never required.)
+
 **You must verify it** — a reverse-engineered baseline is derived; an engineer who knows the system
 checks the topology flows before it's used. This is a gate.
 
