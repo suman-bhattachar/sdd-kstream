@@ -37,8 +37,13 @@ requirements → design: /sdd-architect (create) → /sdd-architecture-review �
 - **Researcher subagent** — `/sdd-architect` **and `/sdd-dev`** dispatch a read-only subagent to investigate
   specific existing code and return a digest (brownfield or any large codebase), keeping volume out of the
   main context.
+- **Graph-enricher subagent** — `sdd-codebase-to-design` (brownfield baseline only) dispatches a
+  general-purpose subagent to enrich the knowledge-graph skeleton (summaries, layers, tour) and loop on the
+  validator until it passes. Fully self-contained: no Understand-Anything plugin required at any point.
 - **Self-review (Level 1)** is a mechanical checklist inside `/sdd-dev` (AGENTS.md MUSTs + acceptance criteria + green build); no artifact. Independent review (Level 2) writes the artifact; human approval (Level 3) ticks the gate.
-- **Determinism** — `scripts/` + `claude/settings.json` hooks (approval gate, topology smell check).
+- **Determinism** — `scripts/` + `claude/settings.json` hooks (approval gate, topology smell check). The
+  brownfield baseline's knowledge graph is built and gated by stdlib Python (`build_knowledge_graph.py`,
+  `validate_knowledge_graph.py`) — no Node/plugin toolchain.
 - `AGENTS.md` states the rules; hooks + review enforce the critical ones. Advisory text alone is not enforcement.
 
 ## Review flow (architecture & code — same shape, manual)

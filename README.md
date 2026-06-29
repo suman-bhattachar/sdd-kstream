@@ -40,7 +40,7 @@ templates/   blank artifact templates (with status frontmatter) — incl. bug + 
 specs/       per-feature artifacts at runtime (requirements, plan, tasks, reviews, STATE) + one example
 bugs/        post-implementation defects (one file per bug) — created at runtime
 knowledge/   org-canonical standards: AGENTS.md, design-standard.md, kafka-topology-rules.md + feedback-log.md
-scripts/     pure-bash: new-feature, approve, hook checks
+scripts/     bash (new-feature, approve, hook checks) + Python stdlib (evidence pack + knowledge graph, brownfield)
 evals/       framework self-tests (skill triggering, planted-violation review)
 install/     setup.sh + the project-facing CLAUDE.md
 claude/      installable payload → copied into the project's .claude/
