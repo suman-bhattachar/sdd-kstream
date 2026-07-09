@@ -8,7 +8,9 @@ Cover: completeness (every requirement covered, every topology has a row + diagr
 safety (no §7-forbidden construct designed in; repartitions documented; guarantee + idempotency),
 blue-green evolution (no state-corruption / duplicate-processing risk across releases; serde/key/store
 compatibility), partitioning intent, traceability. Brownfield: the change respects the existing
-`docs/design.md` baseline.
+`docs/design.md` baseline. Mapping-driven feeds: the generated `.avsc` conforms to
+`knowledge/mapping-rules.md` (type table + conventions) and the declared compatibility mode; a
+feed revision addresses compatibility with the previously registered schema.
 
 ## Severity & calibration
 - **Blocker** — correctness / §7 safety / state-corruption. **Major** — significant design risk.

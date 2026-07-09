@@ -7,3 +7,5 @@ evidence-pack.md
 # OS/IDE
 .DS_Store
 .idea/
+# Excel lock files (created while a workbook is open)
+~$*.xlsx

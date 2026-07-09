@@ -271,3 +271,36 @@ how a single escaped defect ratchets the whole org's standards tighter so the sa
 recur. (`/sdd-standards-update` is installed everywhere but is a **maintainer tool** — run it only in the
 canonical repo; its `[ORG]` edits belong upstream, and a local run would be lost on the next upgrade.
 Carry findings upstream rather than editing standards on your own checkout.)
+
+---
+
+## 10. Feed pipelines (mapping-driven) — the to-do list
+
+For transformation feeds specified by an analyst mapping workbook (source topic → transformed,
+Avro-schema'd target topic). The workbook is the analyst-facing original; `mapping.md` (converted)
+is the artifact the lifecycle runs on; the target Avro schema is **generated**, never hand-written.
+Rules: `knowledge/mapping-rules.md`. Ownership: analyst = business truth (fields, rules, examples);
+architect = the physical contract (Schema settings block, generated `.avsc`, schema evolution).
+
+### One-time setup
+- [ ] Give the analyst team `templates/mapping.template.xlsx` (they copy it per feed; the
+      Instructions sheet is their manual; grey italic rows are examples to replace).
+- [ ] Tell them the golden rule: **every mapping row needs a worked example** — the example wins
+      over the English and becomes the test.
+
+### Per feed
+- [ ] Analyst fills the workbook (Feed facts + Field Mappings + Lookups). The **Schema settings
+      block stays untouched** — engineering owns it.
+- [ ] `scripts/new-feature.sh "<feed-name>"`, then `/sdd-analyst` with the workbook: it runs
+      `scripts/convert_mapping.py` (fails with row-level errors — fix with the analyst, re-run until
+      `VALID`), writes `specs/<feed>/mapping.md` + `requirements.md`, analyst approves → gate.
+- [ ] `/sdd-architect`: confirm the Schema settings block (re-run the converter after), run
+      `scripts/generate_avro_schema.py` → the target `.avsc`; design the topology delta
+      (two-stage if the feed has lookups); **feed revision:** check compatibility against the
+      registered schema before the gate.
+- [ ] `/sdd-architecture-review` → fix loop → design gate.
+- [ ] `/sdd-plan` → `/sdd-approve` → `/sdd-dev` (tests come from the mapping rows' examples —
+      one per row) → `/sdd-code-review` → merge.
+
+Workbook changed later? Re-run the converter (never hand-edit `mapping.md`), then rerun the
+affected phases — a mapping change is a feed revision, so the schema-compatibility check applies.

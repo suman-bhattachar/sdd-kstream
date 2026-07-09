@@ -6,6 +6,55 @@ Newest entries on top.
 
 ---
 
+## 2026-07-09 — Feed-mapping factory: analyst/architect ownership split
+
+Added the mapping-driven feed pipeline capability (analyst workbook → generated Avro contract) with
+a hard ownership boundary: the analyst owns business truth; the architect owns the physical schema.
+
+### New standard
+- **`knowledge/mapping-rules.md` (v1.0)** — the workbook→Avro type table and conventions:
+  optionality → null unions; **arrays are never null** (required, default `[]`); sub-records nullable
+  only when all children optional; enum naming; mandatory field docs; the two-defaults split
+  (On-Error vs Schema Default); plain-string keys; Schema settings are design-phase; evolution checked
+  against the registered schema under the declared compatibility mode. Org-canonical shape
+  (`[ORG]`/`[PROJECT]`, `version:`). Enforced by scripts deterministically + reviewer `[REVIEW]`.
+
+### New scripts
+- **`scripts/generate_mapping_template.py`** (dev-side, openpyxl) → `templates/mapping.template.xlsx`:
+  4 sheets (Instructions / Feed / Field Mappings / Lookups), source-left→target-right layout, rule-type
+  sentence patterns, mandatory worked examples (the example wins over the English and becomes the
+  test), Schema settings block marked **ENGINEERING ONLY**.
+- **`scripts/convert_mapping.py`** (intake, openpyxl) — workbook → `specs/<feed>/mapping.md` (human
+  tables + canonical JSON block). Validates analyst-owned content only (row-level errors); passes the
+  Schema settings block through unvalidated. openpyxl accepted for these two because they run at feed
+  intake / template maintenance, never at install time — the stdlib-only rule covers install/runtime.
+- **`scripts/generate_avro_schema.py`** (design phase, **stdlib**) — mapping.md → `.avsc` per
+  mapping-rules.md; refuses to run while the Schema settings block is incomplete (the architect gate).
+
+### Skill changes
+- `sdd-analyst`: feed-intake branch (run converter, criteria from row examples, schema block not yours).
+- `sdd-architect`: feed-design branch (own the schema block, generate the `.avsc`, revision
+  compatibility check before the gate).
+- `architecture-reviewer-prompt.md`: one added check — generated `.avsc` conforms to mapping-rules.md
+  + compatibility addressed on revisions.
+
+### Docs & hygiene
+- `guides/USER-GUIDE.md` §10: the feed-pipeline to-do list (one-time setup + per-feed checklist).
+- `.gitignore`: ignore Excel lock files (`~$*.xlsx`).
+
+### Verified
+End-to-end acceptance run: blank template rejected; filled workbook converts `VALID`; converter
+rejects a missing example / choice-list without values / illegal field name / undefined lookup;
+generated schema has required-`[]` arrays, decimal(18,2), enum, null unions, docs, name/namespace from
+Schema settings; generation blocks when the schema block is blank.
+
+### Deferred
+- Registry-integrated compatibility check (today: architect verifies manually against the registered
+  schema; later: a script/CI step calling the Schema Registry compatibility API).
+- Source-schema validation at intake is optional (`--source-schema <avsc>`); wire it to the registry.
+
+---
+
 ## 2026-06-18 — §7 topology hook widened + standards v1.1
 
 Hardened the deterministic §7 detection ahead of a brownfield trial install, and folded the matching
