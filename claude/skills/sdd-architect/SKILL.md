@@ -48,6 +48,16 @@ template.
   context. Use it only when the summary isn't enough, not on every feature.
 - Set the design change `in-review`; tell the user to run `/sdd-architecture-review`.
 
+## Feed design (when the feature's spec is `specs/<feature>/mapping.md`)
+- **The Schema settings block is yours** (engineering-owned; the analyst never fills it —
+  `knowledge/mapping-rules.md`): confirm/complete record name, namespace, record description,
+  timestamp precision, and compatibility mode in the workbook, then re-run `convert_mapping.py`.
+- Generate the target contract: `python scripts/generate_avro_schema.py specs/<feature>/mapping.md`.
+  It applies `knowledge/mapping-rules.md` deterministically; any deviation needs an **[ADR]**.
+- **Feed revision:** verify the new schema against the previously registered version under the
+  feed's declared compatibility mode **before** the design gate — this is the serde/blue-green rule
+  applied to feeds.
+
 ## Fix mode
 - Read `specs/<feature>/design-review.md`. Work through open findings **collaboratively with the user**
   — grill and discuss how to resolve each; do not blindly apply the reviewer's wording. Update
