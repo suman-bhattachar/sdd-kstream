@@ -21,7 +21,7 @@ mkdir -p "$TARGET_DIR/.claude"
 cp -rf templates "$TARGET_DIR/"
 cp -rf scripts "$TARGET_DIR/"
 mkdir -p "$TARGET_DIR/knowledge"
-cp knowledge/design-standard.md knowledge/kafka-topology-rules.md "$TARGET_DIR/knowledge/"
+cp knowledge/design-standard.md knowledge/kafka-topology-rules.md knowledge/mapping-rules.md "$TARGET_DIR/knowledge/"
 cp knowledge/AGENTS.md "$TARGET_DIR/AGENTS.md"
 # Seed an empty local feedback log + bug folder (the team's own queue; findings flow upstream).
 [ -f "$TARGET_DIR/knowledge/feedback-log.md" ] || cp templates/feedback-log.template.md "$TARGET_DIR/knowledge/feedback-log.md"
